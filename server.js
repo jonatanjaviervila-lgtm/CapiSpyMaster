@@ -82,7 +82,6 @@ function validateTelegramInitData(initData) {
   if (!hash) return null;
 
   params.delete("hash");
-  params.delete("signature");
 
   const dataCheckString = [...params.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
