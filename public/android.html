@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CapiSpyMaster</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#111827;color:#fff}.app{max-width:1000px;margin:auto;padding:14px}.panel{background:#1f2937;border:1px solid #374151;border-radius:14px;padding:12px;margin-bottom:10px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}button,input,select{border:0;border-radius:10px;padding:11px 13px;font-size:15px}button{font-weight:800}.red{background:#b91c1c;color:#fff}.blue{background:#1d4ed8;color:#fff}.gold{background:#f59e0b;color:#111}.gray{background:#374151;color:#fff}.hidden{display:none!important}.board{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}.card{aspect-ratio:1.35;border-radius:10px;background:#e5d7bd;color:#111827;border:3px solid #c5b38d;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;font-weight:900;font-size:14px}.card.red{background:#b91c1c;border-color:#7f1d1d}.card.blue{background:#1d4ed8;border-color:#1e3a8a}.card.neutral{background:#9ca3af;color:#111827;border-color:#6b7280}.card.assassin{background:#090909;color:#fff;border-color:#000}.card.secret-red{box-shadow:inset 0 0 0 4px #ef4444}.card.secret-blue{box-shadow:inset 0 0 0 4px #3b82f6}.card.secret-neutral{box-shadow:inset 0 0 0 4px #9ca3af}.card.secret-assassin{box-shadow:inset 0 0 0 4px #000;background:#d1d5db}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:10px}.stat{background:#1f2937;padding:9px;border-radius:10px;text-align:center}.small{font-size:11px;color:#9ca3af}.big{font-weight:900}.player{font-size:13px;padding:5px 8px;background:#111827;border-radius:8px}#msg{min-height:20px;color:#fbbf24;margin:8px 0}input,select{background:#f3f4f6;color:#111}h1{font-size:23px;margin:0 0 12px}.roomcode{font-size:25px;font-weight:900;letter-spacing:2px}@media(max-width:620px){.card{font-size:11px}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>🕵️ CapiSpyMaster</h1>
+<div id="msg"></div>
+
+<section id="login" class="panel">
+  <b>Tu nombre</b>
+  <div class="row" style="margin-top:10px">
+    <input id="name" maxlength="30" placeholder="Nombre" autocomplete="nickname">
+    <button class="gold" onclick="login()">Continuar</button>
+  </div>
+</section>
+
+<section id="home" class="hidden">
+  <div class="panel">
+    <div class="small">Jugador</div><div id="who" class="big"></div>
+  </div>
+  <div class="panel">
+    <b>Crear partida</b>
+    <div class="row" style="margin-top:10px">
+      <select id="difficulty">
+        <option value="easy">🟢 Fácil</option>
+        <option value="normal" selected>🟡 Normal</option>
+        <option value="hard">🔴 Difícil</option>
+        <option value="mixed">🎲 Mezclado</option>
+      </select>
+      <button class="gold" onclick="createRoom()">Crear partida</button>
+    </div>
+  </div>
+  <div class="panel">
+    <b>Unirse a una partida</b>
+    <div class="row" style="margin-top:10px">
+      <input id="roomInput" maxlength="6" placeholder="Código de sala" autocapitalize="characters">
+      <button class="gray" onclick="openRoom()">Unirse</button>
+    </div>
+  </div>
+</section>
+
+<section id="roomView" class="hidden">
+  <div class="panel">
+    <div class="small">Sala</div>
+    <div id="roomCode" class="roomcode"></div>
+    <button class="gray" style="margin-top:8px" onclick="leaveRoom()">← Volver</button>
+  </div>
+
+  <section id="lobby" class="panel hidden">
+    <b>Elegí equipo</b>
+    <div class="row" style="margin:10px 0">
+      <button class="red" onclick="join('red')">🔴 Rojo</button>
+      <button class="blue" onclick="join('blue')">🔵 Azul</button>
+      <button class="gray" onclick="beSpy()">Ser Spymaster</button>
+      <button id="testBtn" class="gray hidden" onclick="enableTestMode()">🧪 Modo prueba</button>
+      <button id="startBtn" class="gold hidden" onclick="startGame()">Empezar</button>
+    </div>
+    <div id="players" class="row"></div>
+  </section>
+
+  <section id="testPanel" class="panel hidden" style="border:2px dashed #f59e0b">
+    <b>🧪 Control de prueba</b>
+    <div class="row" style="margin-top:8px">
+      <button class="red" onclick="testRole('red','player')">🔴 Jugador</button>
+      <button class="red" onclick="testRole('red','spymaster')">🔴 Spymaster</button>
+      <button class="blue" onclick="testRole('blue','player')">🔵 Jugador</button>
+      <button class="blue" onclick="testRole('blue','spymaster')">🔵 Spymaster</button>
+    </div>
+    <div id="testInfo" class="small" style="margin-top:8px"></div>
+  </section>
+
+  <section id="game" class="hidden">
+    <div class="stats">
+      <div class="stat"><div class="small">Turno</div><div id="turn" class="big"></div></div>
+      <div class="stat"><div class="small">Rojo</div><div id="rc" class="big"></div></div>
+      <div class="stat"><div class="small">Azul</div><div id="bc" class="big"></div></div>
+      <div class="stat"><div class="small">Pista</div><div id="clueView" class="big">—</div></div>
+    </div>
+    <div id="clueBox" class="panel hidden">
+      <div class="row">
+        <input id="clue" placeholder="Pista">
+        <input id="num" type="number" min="0" max="9" value="2" style="width:75px">
+        <button class="gold" onclick="sendClue()">Dar pista</button>
+      </div>
+    </div>
+    <div id="board" class="board"></div>
+    <div class="row" style="margin-top:10px">
+      <button id="endBtn" class="gray hidden" onclick="endTurn()">Terminar turno</button>
+    </div>
+  </section>
+</section>
+</div>
+<script>
+let token=localStorage.getItem('capi_token')||'';
+let user=null;try{user=JSON.parse(localStorage.getItem('capi_user')||'null')}catch{}
+let room='';let state=null;let timer=null;
+const $=id=>document.getElementById(id);const say=s=>$('msg').textContent=s||'';
+function authHeaders(){return {'content-type':'application/json','Authorization':`Bearer ${token}`}}
+async function api(path,method='GET',body){const r=await fetch(path,{method,headers:authHeaders(),body:body?JSON.stringify(body):undefined});const j=await r.json().catch(()=>({error:'Respuesta inválida'}));if(!r.ok)throw new Error(j.error||'Error');return j}
+async function login(){try{const name=$('name').value.trim();const r=await fetch('/api/android/session',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({name})});const j=await r.json();if(!r.ok)throw new Error(j.error||'Error');token=j.token;user=j.user;localStorage.setItem('capi_token',token);localStorage.setItem('capi_user',JSON.stringify(user));showHome()}catch(e){say(e.message)}}
+function showHome(){if(!token||!user)return;$('login').classList.add('hidden');$('home').classList.remove('hidden');$('roomView').classList.add('hidden');$('who').textContent=user.name;say('')}
+async function createRoom(){try{const j=await api('/api/android/room','POST',{difficulty:$('difficulty').value});room=j.room;state=j.state;enterRoom()}catch(e){say(e.message)}}
+async function openRoom(){room=$('roomInput').value.trim().toUpperCase();if(!room)return say('Ingresá el código de sala');try{state=await api(`/api/room/${room}`);enterRoom()}catch(e){say(e.message)}}
+function enterRoom(){$('home').classList.add('hidden');$('roomView').classList.remove('hidden');$('roomCode').textContent=room;render();if(timer)clearInterval(timer);timer=setInterval(refresh,1200)}
+function leaveRoom(){if(timer)clearInterval(timer);timer=null;room='';state=null;showHome()}
+async function act(path,body){try{state=await api(path,'POST',body);render()}catch(e){say(e.message)}}
+const join=team=>act(`/api/room/${room}/join`,{team});const beSpy=()=>act(`/api/room/${room}/spymaster`,{});const enableTestMode=()=>act(`/api/room/${room}/test-mode`,{});const testRole=(team,role)=>act(`/api/room/${room}/test-role`,{team,role});const startGame=()=>act(`/api/room/${room}/start`,{});const endTurn=()=>act(`/api/room/${room}/end-turn`,{});
+function sendClue(){return act(`/api/room/${room}/clue`,{word:$('clue').value,number:Number($('num').value)})}
+function reveal(index){if(!state?.me||state.me.role!=='player'||state.me.team!==state.turn||state.phase!=='player')return;return act(`/api/room/${room}/reveal`,{index})}
+async function refresh(){if(!room)return;try{state=await api(`/api/room/${room}`);render()}catch(e){say(e.message)}}
+function render(){if(!state)return;say(state.status==='finished'?`Ganó ${state.winner.toUpperCase()}`:'');const isOwner=String(state.ownerId)===String(user?.id);$('lobby').classList.toggle('hidden',state.status!=='lobby');$('game').classList.toggle('hidden',state.status==='lobby');$('startBtn').classList.toggle('hidden',!isOwner);$('testBtn').classList.toggle('hidden',!isOwner||state.testMode);$('testPanel').classList.toggle('hidden',!state.testMode||!isOwner);
+ if(state.testMode&&state.me){const mt=state.me.team==='red'?'Rojo':'Azul',mr=state.me.role==='spymaster'?'Spymaster':'Jugador',tt=state.turn==='red'?'Rojo':'Azul',tr=state.phase==='spymaster'?'Spymaster':'Jugador';$('testInfo').textContent=`Ahora sos: ${mr} ${mt} · Debe jugar: ${tr} ${tt}`}
+ $('players').innerHTML='';for(const p of state.players){const x=document.createElement('span');x.className='player';x.textContent=`${p.team==='red'?'🔴':'🔵'} ${p.name}${p.role==='spymaster'?' 🕵️':''}`;$('players').appendChild(x)}
+ if(state.status!=='lobby'){const mine=state.me;const canClue=mine?.role==='spymaster'&&mine.team===state.turn&&state.phase==='spymaster'&&state.status==='playing';const canPlay=mine?.role==='player'&&mine.team===state.turn&&state.phase==='player'&&state.status==='playing';$('turn').textContent=`${state.turn==='red'?'ROJO':'AZUL'} · ${state.phase==='spymaster'?'SPYMASTER':'JUGADOR'}`;$('rc').textContent=state.redRemaining;$('bc').textContent=state.blueRemaining;$('clueView').textContent=state.clue?`${state.clue.word} — ${state.clue.number}`:'—';$('clueBox').classList.toggle('hidden',!canClue);$('endBtn').classList.toggle('hidden',!canPlay);$('board').innerHTML='';state.cards.forEach((c,i)=>{const el=document.createElement('div');el.className='card';el.textContent=c.word;if(c.revealed&&c.role)el.classList.add(c.role);else if(mine?.role==='spymaster'&&c.role)el.classList.add('secret-'+c.role);if(canPlay&&!c.revealed)el.onclick=()=>reveal(i);$('board').appendChild(el)})}}
+if(user&&token)showHome();else $('name').focus();
+</script>
+</body>
+</html>
