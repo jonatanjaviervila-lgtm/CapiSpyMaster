@@ -555,7 +555,71 @@ app.post(
     );
   }
 );
+app.post(
+  "/api/room/:room/test-mode",
+  auth,
+  (req, res) => {
+    const g = getGame(req, res);
+    if (!g) return;
 
+    if (String(g.ownerId) !== String(req.tg.user.id)) {
+      return res.status(403).json({
+        error: "Sólo el creador puede activar el modo prueba"
+      });
+    }
+
+    if (g.status !== "lobby") {
+      return res.status(400).json({
+        error: "La partida ya empezó"
+      });
+    }
+
+    const u = req.tg.user;
+
+    g.players[u.id] = {
+      id: u.id,
+      name: [u.first_name, u.last_name].filter(Boolean).join(" "),
+      username: u.username || "",
+      team: "red",
+      role: "player"
+    };
+
+    g.players["test_red_spy"] = {
+      id: "test_red_spy",
+      name: "Bot Rojo",
+      username: "",
+      team: "red",
+      role: "spymaster",
+      test: true
+    };
+
+    g.players["test_blue_spy"] = {
+      id: "test_blue_spy",
+      name: "Bot Azul",
+      username: "",
+      team: "blue",
+      role: "spymaster",
+      test: true
+    };
+
+    g.players["test_blue_player"] = {
+      id: "test_blue_player",
+      name: "Jugador Azul",
+      username: "",
+      team: "blue",
+      role: "player",
+      test: true
+    };
+
+    g.testMode = true;
+
+    touch(g);
+
+    res.json(
+      publicState(g, u.id)
+    );
+  }
+);
 app.post(
   "/api/room/:room/start",
   auth,
