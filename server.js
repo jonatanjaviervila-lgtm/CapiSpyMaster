@@ -10,6 +10,7 @@ app.use(express.static("public"));
 
 const {
   BOT_TOKEN,
+  APP_SECRET,
   APP_SHORT_NAME = "spymaster",
   PORT = 3000
 } = process.env;
@@ -424,34 +425,121 @@ function validateTelegramInitData(
 }
 
 
-function auth(
-  req,
-  res,
-  next
-) {
+/* =========================
+   AUTH ANDROID
+========================= */
 
-  const data =
-    validateTelegramInitData(
-      req.get(
-        "X-Telegram-Init-Data"
-      )
-    );
+const AUTH_SECRET =
+  APP_SECRET || BOT_TOKEN;
 
+function cleanAndroidName(value) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .slice(0, 30);
+}
 
-  if (!data) {
+function signAndroidPayload(payloadB64) {
+  return crypto
+    .createHmac("sha256", AUTH_SECRET)
+    .update(payloadB64)
+    .digest("base64url");
+}
 
-    return res
-      .status(401)
-      .json({
-        error:
-          "Telegram auth inválida"
-      });
+function createAndroidToken(user) {
+  const payload = {
+    id: user.id,
+    name: user.name,
+    iat: Math.floor(Date.now() / 1000)
+  };
+
+  const payloadB64 = Buffer
+    .from(JSON.stringify(payload))
+    .toString("base64url");
+
+  return `${payloadB64}.${signAndroidPayload(payloadB64)}`;
+}
+
+function validateAndroidToken(token) {
+  if (!token || !token.includes(".")) return null;
+
+  const [payloadB64, signature] = token.split(".");
+  if (!payloadB64 || !signature) return null;
+
+  const expected = signAndroidPayload(payloadB64);
+  const a = Buffer.from(signature);
+  const b = Buffer.from(expected);
+
+  if (
+    a.length !== b.length ||
+    !crypto.timingSafeEqual(a, b)
+  ) {
+    return null;
   }
 
+  try {
+    const payload = JSON.parse(
+      Buffer.from(payloadB64, "base64url").toString("utf8")
+    );
 
-  req.tg = data;
+    if (
+      !String(payload.id || "").startsWith("android_") ||
+      !payload.name ||
+      !payload.iat
+    ) {
+      return null;
+    }
 
-  next();
+    // Sesiones Android válidas por 90 días.
+    if (Date.now() / 1000 - payload.iat > 90 * 86400) {
+      return null;
+    }
+
+    return {
+      user: {
+        id: payload.id,
+        first_name: payload.name,
+        last_name: "",
+        username: "",
+        platform: "android"
+      }
+    };
+  } catch {
+    return null;
+  }
+}
+
+function auth(req, res, next) {
+  const telegramData = validateTelegramInitData(
+    req.get("X-Telegram-Init-Data")
+  );
+
+  if (telegramData) {
+    req.tg = telegramData;
+    req.authType = "telegram";
+    return next();
+  }
+
+  const authorization = String(
+    req.get("Authorization") || ""
+  );
+
+  const bearer = authorization.startsWith("Bearer ")
+    ? authorization.slice(7).trim()
+    : "";
+
+  const androidData = validateAndroidToken(bearer);
+
+  if (androidData) {
+    // Mantenemos req.tg.user para no cambiar el resto del juego.
+    req.tg = androidData;
+    req.authType = "android";
+    return next();
+  }
+
+  return res.status(401).json({
+    error: "Autenticación inválida"
+  });
 }
 
 
@@ -607,6 +695,74 @@ function switchTurn(g) {
     null;
 }
 
+
+/* =========================
+   API ANDROID
+========================= */
+
+/*
+  Crea una identidad local para la app Android.
+  No requiere Telegram.
+*/
+app.post(
+  "/api/android/session",
+  (req, res) => {
+    const name = cleanAndroidName(req.body.name);
+
+    if (name.length < 2) {
+      return res.status(400).json({
+        error: "Ingresá un nombre de al menos 2 caracteres"
+      });
+    }
+
+    const user = {
+      id: `android_${crypto.randomBytes(12).toString("hex")}`,
+      name
+    };
+
+    const token = createAndroidToken(user);
+
+    res.json({ user, token });
+  }
+);
+
+/*
+  Crea una partida directamente desde Android.
+*/
+app.post(
+  "/api/android/room",
+  auth,
+  (req, res) => {
+    if (req.authType !== "android") {
+      return res.status(403).json({
+        error: "Esta ruta es para la app Android"
+      });
+    }
+
+    const difficulty = String(
+      req.body.difficulty || "normal"
+    );
+
+    if (
+      !["easy", "normal", "hard", "mixed"].includes(difficulty)
+    ) {
+      return res.status(400).json({
+        error: "Dificultad inválida"
+      });
+    }
+
+    const g = createRoom(
+      req.tg.user.id,
+      difficulty
+    );
+
+    res.json({
+      room: g.id,
+      difficulty: g.difficulty,
+      state: publicState(g, req.tg.user.id)
+    });
+  }
+);
 
 /* =========================
    API
