@@ -1,514 +1,602 @@
 <!doctype html>
+
 <html lang="es">
 
 <head>
-  <meta charset="utf-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width,initial-scale=1,viewport-fit=cover"
-  >
+<meta charset="utf-8">
 
-  <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1,viewport-fit=cover"
+>
 
-  <title>Spymaster</title>
+<script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<title>Spymaster</title>
 
-    :root {
-      color-scheme: dark;
-    }
+<style>
 
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: #111827;
-      color: #fff;
-    }
+* {
+  box-sizing: border-box;
+}
 
-    .app {
-      max-width: 1000px;
-      margin: auto;
-      padding: 14px;
-    }
+:root {
+  color-scheme: dark;
+}
 
-    h1 {
-      font-size: 22px;
-      margin: 0 0 10px;
-    }
+body {
+  margin: 0;
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background: #111827;
+  color: #fff;
+}
 
-    .panel {
-      background: #1f2937;
-      border: 1px solid #374151;
-      border-radius: 14px;
-      padding: 12px;
-      margin-bottom: 10px;
-    }
+.app {
+  max-width: 1000px;
+  margin: auto;
+  padding: 14px;
+}
 
-    .row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
+h1 {
+  font-size: 22px;
+  margin: 0 0 10px;
+}
 
-    button,
-    input {
-      border: 0;
-      border-radius: 10px;
-      padding: 11px 13px;
-      font-size: 15px;
-    }
+.panel {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
 
-    button {
-      font-weight: 800;
-    }
+.row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
 
-    .redBtn {
-      background: #b91c1c;
-      color: white;
-    }
+button,
+input {
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-size: 15px;
+}
 
-    .blueBtn {
-      background: #1d4ed8;
-      color: white;
-    }
+button {
+  font-weight: 800;
+}
 
-    .gold {
-      background: #f59e0b;
-      color: #111;
-    }
+.redBtn {
+  background: #b91c1c;
+  color: white;
+}
 
-    .gray {
-      background: #374151;
-      color: white;
-    }
+.blueBtn {
+  background: #1d4ed8;
+  color: white;
+}
 
-    .board {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 7px;
-    }
+.gold {
+  background: #f59e0b;
+  color: #111;
+}
 
-    .card {
-      aspect-ratio: 1.35;
-      border-radius: 10px;
-      background: #e5d7bd;
-      color: #111827;
-      border: 3px solid #c5b38d;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 6px;
-      font-weight: 900;
-      font-size: 14px;
-    }
+.gray {
+  background: #374151;
+  color: white;
+}
 
-    .card.red {
-      background: #b91c1c;
-      color: white;
-      border-color: #7f1d1d;
-    }
+.board {
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 7px;
+}
 
-    .card.blue {
-      background: #1d4ed8;
-      color: white;
-      border-color: #1e3a8a;
-    }
+.card {
+  aspect-ratio: 1.35;
+  border-radius: 10px;
+  background: #e5d7bd;
+  color: #111827;
+  border: 3px solid #c5b38d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6px;
+  font-weight: 900;
+  font-size: 14px;
+}
 
-    .card.neutral {
-      background: #9ca3af;
-      color: #111827;
-      border-color: #6b7280;
-    }
+.card.red {
+  background: #b91c1c;
+  color: white;
+  border-color: #7f1d1d;
+}
 
-    .card.assassin {
-      background: #090909;
-      color: white;
-      border-color: #000;
-    }
+.card.blue {
+  background: #1d4ed8;
+  color: white;
+  border-color: #1e3a8a;
+}
 
-    .card.secret-red {
-      box-shadow:
-        inset 0 0 0 4px #ef4444;
-    }
+.card.neutral {
+  background: #9ca3af;
+  color: #111827;
+  border-color: #6b7280;
+}
 
-    .card.secret-blue {
-      box-shadow:
-        inset 0 0 0 4px #3b82f6;
-    }
+.card.assassin {
+  background: #090909;
+  color: white;
+  border-color: #000;
+}
 
-    .card.secret-neutral {
-      box-shadow:
-        inset 0 0 0 4px #9ca3af;
-    }
+.card.secret-red {
+  box-shadow:
+    inset 0 0 0 4px #ef4444;
+}
 
-    .card.secret-assassin {
-      box-shadow:
-        inset 0 0 0 4px #000;
-      background: #d1d5db;
-    }
+.card.secret-blue {
+  box-shadow:
+    inset 0 0 0 4px #3b82f6;
+}
 
-    .stats {
-      display: grid;
-      grid-template-columns:
-        repeat(4, 1fr);
-      gap: 7px;
-      margin-bottom: 10px;
-    }
+.card.secret-neutral {
+  box-shadow:
+    inset 0 0 0 4px #9ca3af;
+}
 
-    .stat {
-      background: #1f2937;
-      padding: 9px;
-      border-radius: 10px;
-      text-align: center;
-    }
+.card.secret-assassin {
+  box-shadow:
+    inset 0 0 0 4px #000;
 
-    .small {
-      font-size: 11px;
-      color: #9ca3af;
-    }
+  background:
+    #d1d5db;
+}
 
-    .big {
-      font-weight: 900;
-    }
+.stats {
+  display: grid;
+  grid-template-columns:
+    repeat(4,1fr);
+  gap: 7px;
+  margin-bottom: 10px;
+}
 
-    #msg {
-      min-height: 20px;
-      color: #fbbf24;
-      margin: 8px 0;
-    }
+.stat {
+  background: #1f2937;
+  padding: 9px;
+  border-radius: 10px;
+  text-align: center;
+}
 
-    .player {
-      font-size: 13px;
-      padding: 5px 8px;
-      background: #111827;
-      border-radius: 8px;
-    }
+.small {
+  font-size: 11px;
+  color: #9ca3af;
+}
 
-    input {
-      background: #f3f4f6;
-      color: #111;
-    }
+.big {
+  font-weight: 900;
+}
 
-    .hidden {
-      display: none !important;
-    }
+#msg {
+  min-height: 20px;
+  color: #fbbf24;
+  margin: 8px 0;
+}
 
-    .testPanel {
-      border:
-        2px dashed #f59e0b;
-    }
+.player {
+  font-size: 13px;
+  padding: 5px 8px;
+  background: #111827;
+  border-radius: 8px;
+}
 
-    .testTitle {
-      margin-bottom: 8px;
-      font-weight: 900;
-    }
+input {
+  background: #f3f4f6;
+  color: #111;
+}
 
-    @media (max-width: 620px) {
-      .card {
-        font-size: 11px;
-      }
+.hidden {
+  display: none !important;
+}
 
-      .stats {
-        grid-template-columns:
-          repeat(2, 1fr);
-      }
-    }
-  </style>
+.testPanel {
+  border:
+    2px dashed #f59e0b;
+}
+
+.testTitle {
+  margin-bottom: 8px;
+  font-weight: 900;
+}
+
+@media(max-width:620px) {
+
+  .card {
+    font-size: 11px;
+  }
+
+  .stats {
+    grid-template-columns:
+      repeat(2,1fr);
+  }
+}
+
+</style>
+
 </head>
+
 
 <body>
 
+
 <div class="app">
 
-  <h1>
-    🕵️ Spymaster
-    <span id="room"></span>
-  </h1>
 
-  <div id="msg"></div>
-
-
-  <!-- LOBBY -->
-
-  <section
-    id="lobby"
-    class="panel hidden"
-  >
-
-    <b>Elegí equipo</b>
-
-    <div
-      class="row"
-      style="margin:10px 0"
-    >
-
-      <button
-        class="redBtn"
-        onclick="join('red')"
-      >
-        🔴 Rojo
-      </button>
-
-      <button
-        class="blueBtn"
-        onclick="join('blue')"
-      >
-        🔵 Azul
-      </button>
-
-      <button
-        class="gray"
-        onclick="beSpy()"
-      >
-        Ser Spymaster
-      </button>
-
-      <button
-        id="testBtn"
-        class="gray hidden"
-        onclick="enableTestMode()"
-      >
-        🧪 Modo prueba
-      </button>
-
-      <button
-        id="startBtn"
-        class="gold hidden"
-        onclick="startGame()"
-      >
-        Empezar
-      </button>
-
-    </div>
-
-    <div
-      id="players"
-      class="row"
-    ></div>
-
-  </section>
+<h1>
+🕵️ Spymaster
+<span id="room"></span>
+</h1>
 
 
-  <!-- PANEL MODO PRUEBA -->
-
-  <section
-    id="testPanel"
-    class="panel testPanel hidden"
-  >
-
-    <div class="testTitle">
-      🧪 Control de prueba
-    </div>
-
-    <div class="row">
-
-      <button
-        class="redBtn"
-        onclick="testRole('red','player')"
-      >
-        🔴 Jugador
-      </button>
-
-      <button
-        class="redBtn"
-        onclick="testRole('red','spymaster')"
-      >
-        🔴 Spymaster
-      </button>
-
-      <button
-        class="blueBtn"
-        onclick="testRole('blue','player')"
-      >
-        🔵 Jugador
-      </button>
-
-      <button
-        class="blueBtn"
-        onclick="testRole('blue','spymaster')"
-      >
-        🔵 Spymaster
-      </button>
-
-    </div>
-
-    <div
-      id="testRoleInfo"
-      class="small"
-      style="margin-top:8px"
-    ></div>
-
-  </section>
+<div id="msg"></div>
 
 
-  <!-- JUEGO -->
+<!-- LOBBY -->
 
-  <section
-    id="game"
-    class="hidden"
-  >
+<section
+  id="lobby"
+  class="panel hidden"
+>
 
-    <div class="stats">
-
-      <div class="stat">
-        <div class="small">
-          Turno
-        </div>
-        <div
-          id="turn"
-          class="big"
-        ></div>
-      </div>
-
-      <div class="stat">
-        <div class="small">
-          Rojo
-        </div>
-        <div
-          id="rc"
-          class="big"
-        ></div>
-      </div>
-
-      <div class="stat">
-        <div class="small">
-          Azul
-        </div>
-        <div
-          id="bc"
-          class="big"
-        ></div>
-      </div>
-
-      <div class="stat">
-        <div class="small">
-          Pista
-        </div>
-        <div
-          id="clueView"
-          class="big"
-        >
-          —
-        </div>
-      </div>
-
-    </div>
+<b>
+Elegí equipo
+</b>
 
 
-    <div
-      id="clueBox"
-      class="panel hidden"
-    >
-
-      <div class="row">
-
-        <input
-          id="clue"
-          placeholder="Pista"
-        >
-
-        <input
-          id="num"
-          type="number"
-          min="0"
-          max="9"
-          value="2"
-          style="width:75px"
-        >
-
-        <button
-          class="gold"
-          onclick="sendClue()"
-        >
-          Dar pista
-        </button>
-
-      </div>
-
-    </div>
+<div
+  class="row"
+  style="margin:10px 0"
+>
 
 
-    <div
-      id="board"
-      class="board"
-    ></div>
+<button
+  class="redBtn"
+  onclick="join('red')"
+>
+🔴 Rojo
+</button>
 
 
-    <div
-      class="row"
-      style="margin-top:10px"
-    >
+<button
+  class="blueBtn"
+  onclick="join('blue')"
+>
+🔵 Azul
+</button>
 
-      <button
-        id="endBtn"
-        class="gray hidden"
-        onclick="endTurn()"
-      >
-        Terminar turno
-      </button>
 
-    </div>
+<button
+  class="gray"
+  onclick="beSpy()"
+>
+Ser Spymaster
+</button>
 
-  </section>
+
+<button
+  id="testBtn"
+  class="gray hidden"
+  onclick="enableTestMode()"
+>
+🧪 Modo prueba
+</button>
+
+
+<button
+  id="startBtn"
+  class="gold hidden"
+  onclick="startGame()"
+>
+Empezar
+</button>
+
+
+</div>
+
+
+<div
+  id="players"
+  class="row"
+></div>
+
+
+</section>
+
+
+<!-- MODO PRUEBA -->
+
+<section
+  id="testPanel"
+  class="panel testPanel hidden"
+>
+
+
+<div class="testTitle">
+🧪 Control de prueba
+</div>
+
+
+<div class="row">
+
+
+<button
+  class="redBtn"
+  onclick="testRole('red','player')"
+>
+🔴 Jugador
+</button>
+
+
+<button
+  class="redBtn"
+  onclick="testRole('red','spymaster')"
+>
+🔴 Spymaster
+</button>
+
+
+<button
+  class="blueBtn"
+  onclick="testRole('blue','player')"
+>
+🔵 Jugador
+</button>
+
+
+<button
+  class="blueBtn"
+  onclick="testRole('blue','spymaster')"
+>
+🔵 Spymaster
+</button>
+
+
+</div>
+
+
+<div
+  id="testRoleInfo"
+  class="small"
+  style="margin-top:8px"
+></div>
+
+
+</section>
+
+
+<!-- JUEGO -->
+
+<section
+  id="game"
+  class="hidden"
+>
+
+
+<div class="stats">
+
+
+<div class="stat">
+
+<div class="small">
+Turno
+</div>
+
+<div
+  id="turn"
+  class="big"
+></div>
+
+</div>
+
+
+<div class="stat">
+
+<div class="small">
+Rojo
+</div>
+
+<div
+  id="rc"
+  class="big"
+></div>
+
+</div>
+
+
+<div class="stat">
+
+<div class="small">
+Azul
+</div>
+
+<div
+  id="bc"
+  class="big"
+></div>
+
+</div>
+
+
+<div class="stat">
+
+<div class="small">
+Pista
+</div>
+
+<div
+  id="clueView"
+  class="big"
+>
+—
+</div>
+
+</div>
+
+
+</div>
+
+
+<div
+  id="clueBox"
+  class="panel hidden"
+>
+
+
+<div class="row">
+
+
+<input
+  id="clue"
+  placeholder="Pista"
+>
+
+
+<input
+  id="num"
+  type="number"
+  min="0"
+  max="9"
+  value="2"
+  style="width:75px"
+>
+
+
+<button
+  class="gold"
+  onclick="sendClue()"
+>
+Dar pista
+</button>
+
+
+</div>
+
+
+</div>
+
+
+<div
+  id="board"
+  class="board"
+></div>
+
+
+<div
+  class="row"
+  style="margin-top:10px"
+>
+
+
+<button
+  id="endBtn"
+  class="gray hidden"
+  onclick="endTurn()"
+>
+Terminar turno
+</button>
+
+
+</div>
+
+
+</section>
+
 
 </div>
 
 
 <script>
 
+
 const tg =
   window.Telegram.WebApp;
+
 
 tg.ready();
 tg.expand();
 
+
 const initData =
   tg.initData;
 
+
 let room = (
+
   tg.initDataUnsafe?.start_param ||
+
   new URLSearchParams(
     location.search
   ).get("room") ||
+
   ""
+
 ).toUpperCase();
 
+
 document
-  .getElementById("room")
+  .getElementById(
+    "room"
+  )
   .textContent =
+
     room
       ? `— ${room}`
       : "";
 
-let state = null;
 
+let state =
+  null;
+
+
+/* =========================
+   MENSAJES
+========================= */
 
 function say(s) {
+
   document
-    .getElementById("msg")
+    .getElementById(
+      "msg"
+    )
     .textContent =
       s || "";
 }
 
+
+/* =========================
+   API
+========================= */
 
 async function api(
   path,
   method = "GET",
   body
 ) {
+
   const r =
     await fetch(
       path,
       {
+
         method,
 
         headers: {
+
           "content-type":
             "application/json",
 
@@ -523,6 +611,7 @@ async function api(
       }
     );
 
+
   const j =
     await r
       .json()
@@ -533,11 +622,15 @@ async function api(
         })
       );
 
+
   if (!r.ok) {
+
     throw new Error(
-      j.error || "Error"
+      j.error ||
+      "Error"
     );
   }
+
 
   return j;
 }
@@ -547,7 +640,9 @@ async function act(
   path,
   body
 ) {
+
   try {
+
     state =
       await api(
         path,
@@ -555,10 +650,16 @@ async function act(
         body
       );
 
+
     render();
 
+
   } catch (e) {
-    say(e.message);
+
+    say(
+      e.message
+    );
+
 
     tg.HapticFeedback
       ?.notificationOccurred(
@@ -568,15 +669,25 @@ async function act(
 }
 
 
-async function join(team) {
+/* =========================
+   LOBBY
+========================= */
+
+async function join(
+  team
+) {
+
   await act(
     `/api/room/${room}/join`,
-    { team }
+    {
+      team
+    }
   );
 }
 
 
 async function beSpy() {
+
   await act(
     `/api/room/${room}/spymaster`,
     {}
@@ -585,6 +696,7 @@ async function beSpy() {
 
 
 async function enableTestMode() {
+
   await act(
     `/api/room/${room}/test-mode`,
     {}
@@ -596,6 +708,7 @@ async function testRole(
   team,
   role
 ) {
+
   await act(
     `/api/room/${room}/test-role`,
     {
@@ -607,6 +720,7 @@ async function testRole(
 
 
 async function startGame() {
+
   await act(
     `/api/room/${room}/start`,
     {}
@@ -614,10 +728,16 @@ async function startGame() {
 }
 
 
+/* =========================
+   DAR PISTA
+========================= */
+
 async function sendClue() {
+
   await act(
     `/api/room/${room}/clue`,
     {
+
       word:
         document
           .getElementById(
@@ -638,23 +758,52 @@ async function sendClue() {
 }
 
 
-async function reveal(index) {
+/* =========================
+   ELEGIR PALABRA
+========================= */
+
+async function reveal(
+  index
+) {
+
+  /*
+    Además del color y rol,
+    ahora debe ser
+    la fase jugador.
+  */
+
   if (
     !state?.me ||
-    state.me.role !== "player" ||
-    state.me.team !== state.turn
+
+    state.me.role !==
+      "player" ||
+
+    state.me.team !==
+      state.turn ||
+
+    state.phase !==
+      "player"
   ) {
+
     return;
   }
 
+
   await act(
     `/api/room/${room}/reveal`,
-    { index }
+    {
+      index
+    }
   );
 }
 
 
+/* =========================
+   TERMINAR TURNO
+========================= */
+
 async function endTurn() {
+
   await act(
     `/api/room/${room}/end-turn`,
     {}
@@ -662,100 +811,173 @@ async function endTurn() {
 }
 
 
+/* =========================
+   RENDER
+========================= */
+
 function render() {
-  if (!state) return;
+
+  if (!state) {
+    return;
+  }
+
 
   say(
-    state.status === "finished"
+
+    state.status ===
+      "finished"
+
       ? `Ganó ${state.winner.toUpperCase()}`
+
       : ""
   );
 
+
   const lobby =
-    document.getElementById(
-      "lobby"
-    );
+    document
+      .getElementById(
+        "lobby"
+      );
+
 
   const game =
-    document.getElementById(
-      "game"
-    );
+    document
+      .getElementById(
+        "game"
+      );
+
 
   const testPanel =
-    document.getElementById(
-      "testPanel"
+    document
+      .getElementById(
+        "testPanel"
+      );
+
+
+  lobby
+    .classList
+    .toggle(
+
+      "hidden",
+
+      state.status !==
+        "lobby"
     );
 
-  lobby.classList.toggle(
-    "hidden",
-    state.status !== "lobby"
-  );
 
-  game.classList.toggle(
-    "hidden",
-    state.status === "lobby"
-  );
+  game
+    .classList
+    .toggle(
+
+      "hidden",
+
+      state.status ===
+        "lobby"
+    );
+
 
   const isOwner =
-    String(state.ownerId) ===
+
+    String(
+      state.ownerId
+    ) ===
+
     String(
       tg.initDataUnsafe
         ?.user?.id
     );
 
+
   document
     .getElementById(
       "startBtn"
     )
-    .classList.toggle(
+    .classList
+    .toggle(
+
       "hidden",
+
       !isOwner
     );
+
 
   document
     .getElementById(
       "testBtn"
     )
-    .classList.toggle(
+    .classList
+    .toggle(
+
       "hidden",
+
       !isOwner ||
       state.testMode
     );
 
 
   /*
-    Mostrar controles de prueba
-    durante lobby o partida.
+    PANEL DE PRUEBA
   */
 
-  testPanel.classList.toggle(
-    "hidden",
-    !state.testMode ||
-    !isOwner
-  );
+  testPanel
+    .classList
+    .toggle(
+
+      "hidden",
+
+      !state.testMode ||
+      !isOwner
+    );
 
 
   if (
     state.testMode &&
     state.me
   ) {
-    const teamName =
-      state.me.team === "red"
+
+    const myTeam =
+
+      state.me.team ===
+        "red"
+
         ? "Rojo"
         : "Azul";
 
-    const roleName =
+
+    const myRole =
+
       state.me.role ===
-      "spymaster"
+        "spymaster"
+
         ? "Spymaster"
         : "Jugador";
+
+
+    const turnTeam =
+
+      state.turn ===
+        "red"
+
+        ? "Rojo"
+        : "Azul";
+
+
+    const turnRole =
+
+      state.phase ===
+        "spymaster"
+
+        ? "Spymaster"
+        : "Jugador";
+
 
     document
       .getElementById(
         "testRoleInfo"
       )
       .textContent =
-        `Ahora sos: ${roleName} ${teamName}`;
+
+        `Ahora sos: ${myRole} ${myTeam} · Debe jugar: ${turnRole} ${turnTeam}`;
   }
 
 
@@ -764,48 +986,100 @@ function render() {
   */
 
   const players =
-    document.getElementById(
-      "players"
-    );
+    document
+      .getElementById(
+        "players"
+      );
 
-  players.innerHTML = "";
+
+  players.innerHTML =
+    "";
+
 
   for (
     const p of
     state.players
   ) {
+
     const x =
-      document.createElement(
-        "span"
-      );
+      document
+        .createElement(
+          "span"
+        );
+
 
     x.className =
       "player";
 
+
     x.textContent =
+
       `${
-        p.team === "red"
+        p.team ===
+        "red"
           ? "🔴"
           : "🔵"
       } ${p.name}${
-        p.role === "spymaster"
+        p.role ===
+        "spymaster"
           ? " 🕵️"
           : ""
       }`;
 
-    players.appendChild(x);
+
+    players
+      .appendChild(
+        x
+      );
   }
 
 
+  /*
+    PARTIDA
+  */
+
   if (
-    state.status !== "lobby"
+    state.status !==
+    "lobby"
   ) {
+
+
+    const turnTeam =
+
+      state.turn ===
+        "red"
+
+        ? "ROJO"
+        : "AZUL";
+
+
+    const turnRole =
+
+      state.phase ===
+        "spymaster"
+
+        ? "SPYMASTER"
+        : "JUGADOR";
+
+
+    /*
+      Ahora arriba dice, por ejemplo:
+
+      ROJO · SPYMASTER
+
+      o
+
+      ROJO · JUGADOR
+    */
+
     document
       .getElementById(
         "turn"
       )
       .textContent =
-        state.turn.toUpperCase();
+
+        `${turnTeam} · ${turnRole}`;
+
 
     document
       .getElementById(
@@ -814,6 +1088,7 @@ function render() {
       .textContent =
         state.redRemaining;
 
+
     document
       .getElementById(
         "bc"
@@ -821,104 +1096,191 @@ function render() {
       .textContent =
         state.blueRemaining;
 
+
     document
       .getElementById(
         "clueView"
       )
       .textContent =
+
         state.clue
+
           ? `${state.clue.word} — ${state.clue.number}`
+
           : "—";
+
 
     const mine =
       state.me;
 
+
+    /*
+      SPYMASTER sólo puede actuar
+      durante la fase spymaster.
+    */
+
     const canClue =
-      mine?.role === "spymaster" &&
-      mine.team === state.turn &&
-      state.status === "playing";
+
+      mine?.role ===
+        "spymaster" &&
+
+      mine.team ===
+        state.turn &&
+
+      state.phase ===
+        "spymaster" &&
+
+      state.status ===
+        "playing";
+
+
+    /*
+      JUGADOR sólo puede actuar
+      después de que el
+      Spymaster dio la pista.
+    */
 
     const canPlay =
-      mine?.role === "player" &&
-      mine.team === state.turn &&
-      state.status === "playing";
+
+      mine?.role ===
+        "player" &&
+
+      mine.team ===
+        state.turn &&
+
+      state.phase ===
+        "player" &&
+
+      state.status ===
+        "playing";
+
 
     document
       .getElementById(
         "clueBox"
       )
-      .classList.toggle(
+      .classList
+      .toggle(
+
         "hidden",
+
         !canClue
       );
+
 
     document
       .getElementById(
         "endBtn"
       )
-      .classList.toggle(
+      .classList
+      .toggle(
+
         "hidden",
+
         !canPlay
       );
 
+
     const board =
-      document.getElementById(
-        "board"
-      );
-
-    board.innerHTML = "";
-
-    state.cards.forEach(
-      (c, i) => {
-        const el =
-          document.createElement(
-            "div"
-          );
-
-        el.className =
-          "card";
-
-        el.textContent =
-          c.word;
-
-        if (
-          c.revealed &&
-          c.role
-        ) {
-          el.classList.add(
-            c.role
-          );
-
-        } else if (
-          mine?.role ===
-            "spymaster" &&
-          c.role
-        ) {
-          el.classList.add(
-            "secret-" +
-            c.role
-          );
-        }
-
-        if (
-          canPlay &&
-          !c.revealed
-        ) {
-          el.onclick =
-            () => reveal(i);
-        }
-
-        board.appendChild(
-          el
+      document
+        .getElementById(
+          "board"
         );
-      }
-    );
+
+
+    board.innerHTML =
+      "";
+
+
+    state.cards
+      .forEach(
+        (c, i) => {
+
+
+          const el =
+            document
+              .createElement(
+                "div"
+              );
+
+
+          el.className =
+            "card";
+
+
+          el.textContent =
+            c.word;
+
+
+          /*
+            Carta ya revelada
+          */
+
+          if (
+            c.revealed &&
+            c.role
+          ) {
+
+            el.classList
+              .add(
+                c.role
+              );
+          }
+
+
+          /*
+            Spymaster ve
+            todos los colores.
+          */
+
+          else if (
+            mine?.role ===
+              "spymaster" &&
+            c.role
+          ) {
+
+            el.classList
+              .add(
+                "secret-" +
+                c.role
+              );
+          }
+
+
+          /*
+            Sólo jugador activo
+            puede tocar cartas.
+          */
+
+          if (
+            canPlay &&
+            !c.revealed
+          ) {
+
+            el.onclick =
+              () =>
+                reveal(i);
+          }
+
+
+          board
+            .appendChild(
+              el
+            );
+        }
+      );
   }
 }
 
 
+/* =========================
+   ACTUALIZACIÓN
+========================= */
+
 async function refresh() {
+
   if (!room) {
+
     say(
       "Abrí la Mini App desde el botón de una partida."
     );
@@ -926,28 +1288,39 @@ async function refresh() {
     return;
   }
 
+
   try {
+
     state =
       await api(
         `/api/room/${room}`
       );
 
+
     render();
 
+
   } catch (e) {
-    say(e.message);
+
+    say(
+      e.message
+    );
   }
 }
 
 
 refresh();
 
+
 setInterval(
   refresh,
   1200
 );
 
+
 </script>
 
+
 </body>
+
 </html>
