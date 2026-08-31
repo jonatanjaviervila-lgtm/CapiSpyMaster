@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import crypto from "crypto";
+import fs from "fs";
 
 const app = express();
 app.use(express.json());
@@ -20,12 +21,14 @@ if (!BOT_TOKEN) {
 
 const games = new Map();
 
+const wordData = JSON.parse(
+  fs.readFileSync("./data/words-es.json", "utf8")
+);
+
 const WORDS = [
-  "ÁGUILA","MOTOR","LUNA","REY","VIDRIO","BOMBA","CABALLO","CHINA","PLATA","NUBE",
-  "TREN","MÉDICO","PUERTO","CARTA","FUEGO","TORRE","PIANO","BOSQUE","CORONA","PARED",
-  "PERRO","MARTE","BANCO","NIEVE","ANILLO","RÍO","CABLE","CLAVO","BARCO","CAMPO",
-  "LLAVE","RELOJ","ROMA","DRAGÓN","GATO","PUENTE","SOL","MINA","AVIÓN","ROCA",
-  "HIERRO","PLAYA","REINA","NOCHE","RADIO","PUMA","PLANTA","RAYO","MAPA","PUERTA"
+  ...wordData.levels.easy,
+  ...wordData.levels.medium,
+  ...wordData.levels.hard
 ];
 
 function shuffle(a) {
