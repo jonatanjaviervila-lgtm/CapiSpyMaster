@@ -20,7 +20,7 @@ if (!BOT_TOKEN) {
 }
 
 /* =========================
-   BANCO DE PALABRAS
+   PALABRAS
 ========================= */
 
 let wordData;
@@ -30,10 +30,7 @@ try {
     fs.readFileSync("./data/words-es.json", "utf8")
   );
 } catch (e) {
-  console.error(
-    "No se pudo leer data/words-es.json:",
-    e.message
-  );
+  console.error("No se pudo leer data/words-es.json:", e.message);
   process.exit(1);
 }
 
@@ -60,73 +57,41 @@ function shuffle(a) {
 
   for (let i = arr.length - 1; i > 0; i--) {
     const j = crypto.randomInt(i + 1);
-
-    [arr[i], arr[j]] = [
-      arr[j],
-      arr[i]
-    ];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 
   return arr;
 }
 
-function pickWordsByDifficulty(
-  difficulty = "normal"
-) {
+function pickWordsByDifficulty(difficulty = "normal") {
   let selected;
 
   switch (difficulty) {
     case "easy":
-      selected = shuffle(
-        WORDS_EASY
-      ).slice(0, 25);
+      selected = shuffle(WORDS_EASY).slice(0, 25);
       break;
 
     case "hard":
       selected = [
-        ...shuffle(WORDS_MEDIUM).slice(
-          0,
-          8
-        ),
-        ...shuffle(WORDS_HARD).slice(
-          0,
-          17
-        )
+        ...shuffle(WORDS_MEDIUM).slice(0, 8),
+        ...shuffle(WORDS_HARD).slice(0, 17)
       ];
       break;
 
     case "mixed":
       selected = [
-        ...shuffle(WORDS_EASY).slice(
-          0,
-          9
-        ),
-        ...shuffle(WORDS_MEDIUM).slice(
-          0,
-          9
-        ),
-        ...shuffle(WORDS_HARD).slice(
-          0,
-          7
-        )
+        ...shuffle(WORDS_EASY).slice(0, 9),
+        ...shuffle(WORDS_MEDIUM).slice(0, 9),
+        ...shuffle(WORDS_HARD).slice(0, 7)
       ];
       break;
 
     case "normal":
     default:
       selected = [
-        ...shuffle(WORDS_EASY).slice(
-          0,
-          8
-        ),
-        ...shuffle(WORDS_MEDIUM).slice(
-          0,
-          12
-        ),
-        ...shuffle(WORDS_HARD).slice(
-          0,
-          5
-        )
+        ...shuffle(WORDS_EASY).slice(0, 8),
+        ...shuffle(WORDS_MEDIUM).slice(0, 12),
+        ...shuffle(WORDS_HARD).slice(0, 5)
       ];
       break;
   }
@@ -138,29 +103,22 @@ function difficultyName(difficulty) {
   switch (difficulty) {
     case "easy":
       return "Fácil";
-
     case "hard":
       return "Difícil";
-
     case "mixed":
       return "Mezclado";
-
     default:
       return "Normal";
   }
 }
 
-function createRoom(
-  ownerId,
-  difficulty = "normal"
-) {
+function createRoom(ownerId, difficulty = "normal") {
   const id = crypto
     .randomBytes(3)
     .toString("hex")
     .toUpperCase();
 
-  const words =
-    pickWordsByDifficulty(difficulty);
+  const words = pickWordsByDifficulty(difficulty);
 
   const roles = shuffle([
     ...Array(9).fill("red"),
@@ -173,6 +131,7 @@ function createRoom(
     id,
     ownerId,
     difficulty,
+    testMode: false,
     status: "lobby",
     turn: "red",
     clue: null,
@@ -180,15 +139,11 @@ function createRoom(
     blueRemaining: 8,
     winner: null,
     players: {},
-
-    cards: words.map(
-      (word, i) => ({
-        word,
-        role: roles[i],
-        revealed: false
-      })
-    ),
-
+    cards: words.map((word, i) => ({
+      word,
+      role: roles[i],
+      revealed: false
+    })),
     updatedAt: Date.now()
   };
 
@@ -201,13 +156,10 @@ function createRoom(
    TELEGRAM AUTH
 ========================= */
 
-function validateTelegramInitData(
-  initData
-) {
+function validateTelegramInitData(initData) {
   if (!initData) return null;
 
-  const params =
-    new URLSearchParams(initData);
+  const params = new URLSearchParams(initData);
 
   const hash = params.get("hash");
 
@@ -215,48 +167,27 @@ function validateTelegramInitData(
 
   /*
     IMPORTANTE:
-    Para validar con BOT_TOKEN
-    se elimina solamente hash.
+    eliminar solamente hash.
   */
   params.delete("hash");
 
-  const dataCheckString = [
-    ...params.entries()
-  ]
-    .sort(
-      ([a], [b]) =>
-        a.localeCompare(b)
-    )
-    .map(
-      ([k, v]) => `${k}=${v}`
-    )
+  const dataCheckString = [...params.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([k, v]) => `${k}=${v}`)
     .join("\n");
 
   const secretKey = crypto
-    .createHmac(
-      "sha256",
-      "WebAppData"
-    )
+    .createHmac("sha256", "WebAppData")
     .update(BOT_TOKEN)
     .digest();
 
   const calculated = crypto
-    .createHmac(
-      "sha256",
-      secretKey
-    )
+    .createHmac("sha256", secretKey)
     .update(dataCheckString)
     .digest("hex");
 
-  const a = Buffer.from(
-    calculated,
-    "hex"
-  );
-
-  const b = Buffer.from(
-    hash,
-    "hex"
-  );
+  const a = Buffer.from(calculated, "hex");
+  const b = Buffer.from(hash, "hex");
 
   if (
     a.length !== b.length ||
@@ -271,9 +202,7 @@ function validateTelegramInitData(
 
   if (
     !authDate ||
-    Date.now() / 1000 -
-      authDate >
-      86400
+    Date.now() / 1000 - authDate > 86400
   ) {
     return null;
   }
@@ -283,16 +212,12 @@ function validateTelegramInitData(
       params.get("user") || "{}"
     );
 
-    if (!user.id) {
-      return null;
-    }
+    if (!user.id) return null;
 
     return {
       user,
       startParam:
-        params.get(
-          "start_param"
-        ) || ""
+        params.get("start_param") || ""
     };
   } catch {
     return null;
@@ -300,45 +225,33 @@ function validateTelegramInitData(
 }
 
 function auth(req, res, next) {
-  const data =
-    validateTelegramInitData(
-      req.get(
-        "X-Telegram-Init-Data"
-      )
-    );
+  const data = validateTelegramInitData(
+    req.get("X-Telegram-Init-Data")
+  );
 
   if (!data) {
-    return res
-      .status(401)
-      .json({
-        error:
-          "Telegram auth inválida"
-      });
+    return res.status(401).json({
+      error: "Telegram auth inválida"
+    });
   }
 
   req.tg = data;
-
   next();
 }
 
 /* =========================
-   UTILIDADES DEL JUEGO
+   UTILIDADES
 ========================= */
 
 function getGame(req, res) {
   const g = games.get(
-    String(
-      req.params.room || ""
-    ).toUpperCase()
+    String(req.params.room || "").toUpperCase()
   );
 
   if (!g) {
-    res
-      .status(404)
-      .json({
-        error:
-          "Partida inexistente"
-      });
+    res.status(404).json({
+      error: "Partida inexistente"
+    });
 
     return null;
   }
@@ -350,12 +263,8 @@ function touch(g) {
   g.updatedAt = Date.now();
 }
 
-function publicState(
-  g,
-  userId
-) {
-  const me =
-    g.players[userId];
+function publicState(g, userId) {
+  const me = g.players[userId];
 
   const isSpy =
     me?.role === "spymaster";
@@ -363,37 +272,27 @@ function publicState(
   return {
     id: g.id,
     difficulty: g.difficulty,
+    testMode: g.testMode,
     status: g.status,
     turn: g.turn,
     clue: g.clue,
-    redRemaining:
-      g.redRemaining,
-    blueRemaining:
-      g.blueRemaining,
+    redRemaining: g.redRemaining,
+    blueRemaining: g.blueRemaining,
     winner: g.winner,
     ownerId: g.ownerId,
     me: me || null,
-    players:
-      Object.values(
-        g.players
-      ),
+    players: Object.values(g.players),
 
-    cards: g.cards.map(
-      c => ({
-        word: c.word,
-        revealed:
-          c.revealed,
+    cards: g.cards.map(c => ({
+      word: c.word,
+      revealed: c.revealed,
+      role:
+        c.revealed || isSpy
+          ? c.role
+          : null
+    })),
 
-        role:
-          c.revealed ||
-          isSpy
-            ? c.role
-            : null
-      })
-    ),
-
-    updatedAt:
-      g.updatedAt
+    updatedAt: g.updatedAt
   };
 }
 
@@ -414,9 +313,7 @@ app.get(
   "/api/room/:room",
   auth,
   (req, res) => {
-    const g =
-      getGame(req, res);
-
+    const g = getGame(req, res);
     if (!g) return;
 
     res.json(
@@ -428,58 +325,40 @@ app.get(
   }
 );
 
+/* ELEGIR EQUIPO */
+
 app.post(
   "/api/room/:room/join",
   auth,
   (req, res) => {
-    const g =
-      getGame(req, res);
-
+    const g = getGame(req, res);
     if (!g) return;
 
-    if (
-      g.status !== "lobby"
-    ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "La partida ya empezó"
-        });
+    if (g.status !== "lobby") {
+      return res.status(400).json({
+        error: "La partida ya empezó"
+      });
     }
 
-    const team =
-      req.body.team;
+    const team = req.body.team;
 
-    if (
-      ![
-        "red",
-        "blue"
-      ].includes(team)
-    ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Equipo inválido"
-        });
+    if (!["red", "blue"].includes(team)) {
+      return res.status(400).json({
+        error: "Equipo inválido"
+      });
     }
 
     const u = req.tg.user;
 
     g.players[u.id] = {
       id: u.id,
-
       name: [
         u.first_name,
         u.last_name
       ]
         .filter(Boolean)
         .join(" "),
-
-      username:
-        u.username || "",
-
+      username: u.username || "",
       team,
       role: "player"
     };
@@ -487,74 +366,55 @@ app.post(
     touch(g);
 
     res.json(
-      publicState(
-        g,
-        u.id
-      )
+      publicState(g, u.id)
     );
   }
 );
+
+/* SER SPYMASTER */
 
 app.post(
   "/api/room/:room/spymaster",
   auth,
   (req, res) => {
-    const g =
-      getGame(req, res);
-
+    const g = getGame(req, res);
     if (!g) return;
 
-    if (
-      g.status !== "lobby"
-    ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "La partida ya empezó"
-        });
+    if (g.status !== "lobby") {
+      return res.status(400).json({
+        error: "La partida ya empezó"
+      });
     }
 
     const me =
-      g.players[
-        req.tg.user.id
-      ];
+      g.players[req.tg.user.id];
 
     if (!me) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Primero elegí equipo"
-        });
+      return res.status(400).json({
+        error: "Primero elegí equipo"
+      });
     }
 
-    for (
-      const p of
-      Object.values(
-        g.players
-      )
-    ) {
-      if (
-        p.team === me.team
-      ) {
+    for (const p of Object.values(g.players)) {
+      if (p.team === me.team) {
         p.role = "player";
       }
     }
 
-    me.role =
-      "spymaster";
+    me.role = "spymaster";
 
     touch(g);
 
     res.json(
-      publicState(
-        g,
-        me.id
-      )
+      publicState(g, me.id)
     );
   }
 );
+
+/* =========================
+   MODO PRUEBA
+========================= */
+
 app.post(
   "/api/room/:room/test-mode",
   auth,
@@ -562,9 +422,13 @@ app.post(
     const g = getGame(req, res);
     if (!g) return;
 
-    if (String(g.ownerId) !== String(req.tg.user.id)) {
+    if (
+      String(g.ownerId) !==
+      String(req.tg.user.id)
+    ) {
       return res.status(403).json({
-        error: "Sólo el creador puede activar el modo prueba"
+        error:
+          "Sólo el creador puede activar el modo prueba"
       });
     }
 
@@ -576,17 +440,30 @@ app.post(
 
     const u = req.tg.user;
 
+    /*
+      Vos arrancás como jugador rojo.
+    */
+
     g.players[u.id] = {
       id: u.id,
-      name: [u.first_name, u.last_name].filter(Boolean).join(" "),
+      name: [
+        u.first_name,
+        u.last_name
+      ]
+        .filter(Boolean)
+        .join(" "),
       username: u.username || "",
       team: "red",
       role: "player"
     };
 
+    /*
+      Jugadores ficticios para permitir iniciar.
+    */
+
     g.players["test_red_spy"] = {
       id: "test_red_spy",
-      name: "Bot Rojo",
+      name: "Spymaster Rojo",
       username: "",
       team: "red",
       role: "spymaster",
@@ -595,7 +472,7 @@ app.post(
 
     g.players["test_blue_spy"] = {
       id: "test_blue_spy",
-      name: "Bot Azul",
+      name: "Spymaster Azul",
       username: "",
       team: "blue",
       role: "spymaster",
@@ -620,96 +497,137 @@ app.post(
     );
   }
 );
+
+/*
+  CAMBIAR ROL DURANTE EL MODO PRUEBA
+*/
+
+app.post(
+  "/api/room/:room/test-role",
+  auth,
+  (req, res) => {
+    const g = getGame(req, res);
+    if (!g) return;
+
+    if (!g.testMode) {
+      return res.status(400).json({
+        error: "El modo prueba no está activo"
+      });
+    }
+
+    if (
+      String(g.ownerId) !==
+      String(req.tg.user.id)
+    ) {
+      return res.status(403).json({
+        error:
+          "Sólo el creador puede cambiar de rol en modo prueba"
+      });
+    }
+
+    const team = req.body.team;
+    const role = req.body.role;
+
+    if (
+      !["red", "blue"].includes(team)
+    ) {
+      return res.status(400).json({
+        error: "Equipo inválido"
+      });
+    }
+
+    if (
+      !["player", "spymaster"].includes(role)
+    ) {
+      return res.status(400).json({
+        error: "Rol inválido"
+      });
+    }
+
+    const u = req.tg.user;
+
+    g.players[u.id] = {
+      id: u.id,
+      name: [
+        u.first_name,
+        u.last_name
+      ]
+        .filter(Boolean)
+        .join(" "),
+      username: u.username || "",
+      team,
+      role
+    };
+
+    touch(g);
+
+    res.json(
+      publicState(g, u.id)
+    );
+  }
+);
+
+/* EMPEZAR */
+
 app.post(
   "/api/room/:room/start",
   auth,
   (req, res) => {
-    const g =
-      getGame(req, res);
-
+    const g = getGame(req, res);
     if (!g) return;
 
     if (
       String(g.ownerId) !==
-      String(
-        req.tg.user.id
-      )
+      String(req.tg.user.id)
     ) {
-      return res
-        .status(403)
-        .json({
-          error:
-            "Sólo quien creó la partida puede iniciarla"
-        });
+      return res.status(403).json({
+        error:
+          "Sólo quien creó la partida puede iniciarla"
+      });
     }
 
     const ps =
-      Object.values(
-        g.players
-      );
+      Object.values(g.players);
 
-    const redSpy =
-      ps.some(
-        p =>
-          p.team ===
-            "red" &&
-          p.role ===
-            "spymaster"
-      );
+    const redSpy = ps.some(
+      p =>
+        p.team === "red" &&
+        p.role === "spymaster"
+    );
 
-    const blueSpy =
-      ps.some(
-        p =>
-          p.team ===
-            "blue" &&
-          p.role ===
-            "spymaster"
-      );
+    const blueSpy = ps.some(
+      p =>
+        p.team === "blue" &&
+        p.role === "spymaster"
+    );
 
-    if (
-      !redSpy ||
-      !blueSpy
-    ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Cada equipo necesita un Spymaster"
-        });
+    if (!redSpy || !blueSpy) {
+      return res.status(400).json({
+        error:
+          "Cada equipo necesita un Spymaster"
+      });
     }
 
-    const redPlayer =
-      ps.some(
-        p =>
-          p.team ===
-            "red" &&
-          p.role ===
-            "player"
-      );
+    const redPlayer = ps.some(
+      p =>
+        p.team === "red" &&
+        p.role === "player"
+    );
 
-    const bluePlayer =
-      ps.some(
-        p =>
-          p.team ===
-            "blue" &&
-          p.role ===
-            "player"
-      );
+    const bluePlayer = ps.some(
+      p =>
+        p.team === "blue" &&
+        p.role === "player"
+    );
 
-    if (
-      !redPlayer ||
-      !bluePlayer
-    ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Cada equipo necesita al menos un jugador además del Spymaster"
-        });
+    if (!redPlayer || !bluePlayer) {
+      return res.status(400).json({
+        error:
+          "Cada equipo necesita al menos un jugador además del Spymaster"
+      });
     }
 
-    g.status =
-      "playing";
+    g.status = "playing";
 
     touch(g);
 
@@ -722,44 +640,34 @@ app.post(
   }
 );
 
+/* DAR PISTA */
+
 app.post(
   "/api/room/:room/clue",
   auth,
   (req, res) => {
-    const g =
-      getGame(req, res);
-
+    const g = getGame(req, res);
     if (!g) return;
 
     const me =
-      g.players[
-        req.tg.user.id
-      ];
+      g.players[req.tg.user.id];
 
-    if (
-      g.status !==
-      "playing"
-    ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "La partida no está activa"
-        });
+    if (g.status !== "playing") {
+      return res.status(400).json({
+        error:
+          "La partida no está activa"
+      });
     }
 
     if (
       !me ||
-      me.role !==
-        "spymaster" ||
+      me.role !== "spymaster" ||
       me.team !== g.turn
     ) {
-      return res
-        .status(403)
-        .json({
-          error:
-            "No te toca dar pista"
-        });
+      return res.status(403).json({
+        error:
+          "No te toca dar pista"
+      });
     }
 
     const word = String(
@@ -769,24 +677,18 @@ app.post(
       .toUpperCase()
       .slice(0, 30);
 
-    const number =
-      Math.max(
-        0,
-        Math.min(
-          9,
-          Number(
-            req.body.number
-          )
-        )
-      );
+    const number = Math.max(
+      0,
+      Math.min(
+        9,
+        Number(req.body.number)
+      )
+    );
 
     if (!word) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Falta la pista"
-        });
+      return res.status(400).json({
+        error: "Falta la pista"
+      });
     }
 
     g.clue = {
@@ -798,168 +700,115 @@ app.post(
     touch(g);
 
     res.json(
-      publicState(
-        g,
-        me.id
-      )
+      publicState(g, me.id)
     );
   }
 );
+
+/* REVELAR CARTA */
 
 app.post(
   "/api/room/:room/reveal",
   auth,
   (req, res) => {
-    const g =
-      getGame(req, res);
-
+    const g = getGame(req, res);
     if (!g) return;
 
     const me =
-      g.players[
-        req.tg.user.id
-      ];
+      g.players[req.tg.user.id];
 
-    if (
-      g.status !==
-      "playing"
-    ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "La partida no está activa"
-        });
+    if (g.status !== "playing") {
+      return res.status(400).json({
+        error:
+          "La partida no está activa"
+      });
     }
 
     if (
       !me ||
-      me.role !==
-        "player" ||
+      me.role !== "player" ||
       me.team !== g.turn
     ) {
-      return res
-        .status(403)
-        .json({
-          error:
-            "No podés revelar ahora"
-        });
+      return res.status(403).json({
+        error:
+          "No podés revelar ahora"
+      });
     }
 
     const i =
-      Number(
-        req.body.index
-      );
+      Number(req.body.index);
 
-    const c =
-      g.cards[i];
+    const c = g.cards[i];
 
-    if (
-      !c ||
-      c.revealed
-    ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Carta inválida"
-        });
+    if (!c || c.revealed) {
+      return res.status(400).json({
+        error: "Carta inválida"
+      });
     }
 
     c.revealed = true;
 
-    if (
-      c.role === "red"
-    ) {
+    if (c.role === "red") {
       g.redRemaining--;
     }
 
-    if (
-      c.role === "blue"
-    ) {
+    if (c.role === "blue") {
       g.blueRemaining--;
     }
 
-    if (
-      c.role ===
-      "assassin"
-    ) {
-      g.status =
-        "finished";
+    if (c.role === "assassin") {
+      g.status = "finished";
 
       g.winner =
         g.turn === "red"
           ? "blue"
           : "red";
-    } else if (
-      g.redRemaining === 0
-    ) {
-      g.status =
-        "finished";
-
+    } else if (g.redRemaining === 0) {
+      g.status = "finished";
       g.winner = "red";
-    } else if (
-      g.blueRemaining === 0
-    ) {
-      g.status =
-        "finished";
-
+    } else if (g.blueRemaining === 0) {
+      g.status = "finished";
       g.winner = "blue";
-    } else if (
-      c.role !== g.turn
-    ) {
+    } else if (c.role !== g.turn) {
       switchTurn(g);
     }
 
     touch(g);
 
     res.json(
-      publicState(
-        g,
-        me.id
-      )
+      publicState(g, me.id)
     );
   }
 );
+
+/* TERMINAR TURNO */
 
 app.post(
   "/api/room/:room/end-turn",
   auth,
   (req, res) => {
-    const g =
-      getGame(req, res);
-
+    const g = getGame(req, res);
     if (!g) return;
 
     const me =
-      g.players[
-        req.tg.user.id
-      ];
+      g.players[req.tg.user.id];
 
-    if (
-      g.status !==
-      "playing"
-    ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "La partida no está activa"
-        });
+    if (g.status !== "playing") {
+      return res.status(400).json({
+        error:
+          "La partida no está activa"
+      });
     }
 
     if (
       !me ||
-      me.role !==
-        "player" ||
+      me.role !== "player" ||
       me.team !== g.turn
     ) {
-      return res
-        .status(403)
-        .json({
-          error:
-            "No podés terminar este turno"
-        });
+      return res.status(403).json({
+        error:
+          "No podés terminar este turno"
+      });
     }
 
     switchTurn(g);
@@ -967,10 +816,7 @@ app.post(
     touch(g);
 
     res.json(
-      publicState(
-        g,
-        me.id
-      )
+      publicState(g, me.id)
     );
   }
 );
@@ -1036,9 +882,7 @@ async function tg(
   return data;
 }
 
-async function sendDifficultyMenu(
-  msg
-) {
+async function sendDifficultyMenu(msg) {
   await tg(
     "sendMessage",
     {
@@ -1052,35 +896,24 @@ async function sendDifficultyMenu(
         inline_keyboard: [
           [
             {
-              text:
-                "🟢 Fácil",
-
+              text: "🟢 Fácil",
               callback_data:
                 `new:easy:${msg.from.id}`
             },
-
             {
-              text:
-                "🟡 Normal",
-
+              text: "🟡 Normal",
               callback_data:
                 `new:normal:${msg.from.id}`
             }
           ],
-
           [
             {
-              text:
-                "🔴 Difícil",
-
+              text: "🔴 Difícil",
               callback_data:
                 `new:hard:${msg.from.id}`
             },
-
             {
-              text:
-                "🎲 Mezclado",
-
+              text: "🎲 Mezclado",
               callback_data:
                 `new:mixed:${msg.from.id}`
             }
@@ -1096,9 +929,7 @@ async function handleDifficultyCallback(
   username
 ) {
   const data =
-    String(
-      query.data || ""
-    );
+    String(query.data || "");
 
   const parts =
     data.split(":");
@@ -1122,17 +953,13 @@ async function handleDifficultyCallback(
       "normal",
       "hard",
       "mixed"
-    ].includes(
-      difficulty
-    )
+    ].includes(difficulty)
   ) {
     return false;
   }
 
   if (
-    String(
-      query.from.id
-    ) !==
+    String(query.from.id) !==
     String(ownerId)
   ) {
     await tg(
@@ -1142,21 +969,13 @@ async function handleDifficultyCallback(
           query.id,
 
         text:
-          "Sólo quien pidió la partida puede elegir la dificultad.",
-
-        show_alert:
-          false
+          "Sólo quien pidió la partida puede elegir la dificultad."
       }
     );
 
     return true;
   }
 
-  /*
-    Contestamos enseguida
-    para sacar el relojito
-    del botón de Telegram.
-  */
   await tg(
     "answerCallbackQuery",
     {
@@ -1186,9 +1005,7 @@ async function handleDifficultyCallback(
       text:
         `🕵️ Nueva partida Codenames\n\n` +
         `Sala: ${room.id}\n` +
-        `Dificultad: ${difficultyName(
-          difficulty
-        )}\n\n` +
+        `Dificultad: ${difficultyName(difficulty)}\n\n` +
         `Entren desde el botón.`,
 
       reply_markup: {
@@ -1197,18 +1014,12 @@ async function handleDifficultyCallback(
             {
               text:
                 "🎮 Entrar a la partida",
-
-              url:
-                miniAppLink
+              url: miniAppLink
             }
           ]
         ]
       }
     }
-  );
-
-  console.log(
-    `Partida ${room.id} creada por ${query.from.id} — ${difficulty}`
   );
 
   return true;
@@ -1256,19 +1067,11 @@ async function startBotPolling() {
             }
           );
 
-        for (
-          const upd of
-          data.result
-        ) {
+        for (const upd of data.result) {
           offset =
             upd.update_id + 1;
 
-          /*
-            BOTONES DE DIFICULTAD
-          */
-          if (
-            upd.callback_query
-          ) {
+          if (upd.callback_query) {
             await handleDifficultyCallback(
               upd.callback_query,
               username
@@ -1277,25 +1080,16 @@ async function startBotPolling() {
             continue;
           }
 
-          /*
-            MENSAJES
-          */
           const msg =
             upd.message;
 
-          if (!msg) {
-            continue;
-          }
+          if (!msg) continue;
 
           const text =
-            (
-              msg.text || ""
-            ).trim();
+            (msg.text || "").trim();
 
           if (
-            /^\/start(@\w+)?$/i.test(
-              text
-            )
+            /^\/start(@\w+)?$/i.test(text)
           ) {
             await tg(
               "sendMessage",
@@ -1312,14 +1106,9 @@ async function startBotPolling() {
           }
 
           if (
-            /^\/(nuevo|new)(@\w+)?$/i.test(
-              text
-            )
+            /^\/(nuevo|new)(@\w+)?$/i.test(text)
           ) {
-            await sendDifficultyMenu(
-              msg
-            );
-
+            await sendDifficultyMenu(msg);
             continue;
           }
         }
