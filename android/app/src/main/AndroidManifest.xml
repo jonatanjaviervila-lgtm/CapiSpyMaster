@@ -5,7 +5,9 @@
         android:allowBackup="true"
         android:label="CapiSpyMaster"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="false"
+        android:icon="@drawable/app_icon"
+android:roundIcon="@drawable/app_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true">
